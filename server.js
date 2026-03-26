@@ -37,5 +37,23 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// Ruta de salud para el ping
+app.get('/ping', (req, res) => res.json({ status: 'ok' }));
+
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`BenjaZalaGPT corriendo en puerto ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`BenjaZalaGPT corriendo en puerto ${PORT}`);
+
+  // Auto-ping cada 14 minutos para que Render no duerma el servidor
+  const APP_URL = process.env.RENDER_EXTERNAL_URL;
+  if (APP_URL) {
+    setInterval(async () => {
+      try {
+        await fetch(`${APP_URL}/ping`);
+        console.log('Ping enviado - servidor activo');
+      } catch(e) {
+        console.log('Ping fallido:', e.message);
+      }
+    }, 14 * 60 * 1000);
+  }
+});
